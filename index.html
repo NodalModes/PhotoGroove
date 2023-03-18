@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="http://elm-in-action.com/styles.css">
+    <link rel="stylesheet" href="http://elm-in-action.com/range-slider.css">
+    <script src="http://elm-in-action.com/range-slider.js"></script>
+    <script>
+        // defines a RangeSlider class to be the implementation for <range-slider>
+        class RangeSlider extends HTMLElement {
+            // called whenever a <range-slider> is added to the DOM
+            connectedCallback() {
+                // creates an <input> and adds it to the DOM
+                var input = document.createElement("input");
+                this.appendChild(input);
+
+                // uses the JSR library to initialize the <input>
+                var jsr = new JSR(input, {
+                    max: this.max,
+                    values: [this.val],
+                    sliders: 1,
+                    grid: false
+                });
+
+                var rangeSliderNode = this;
+
+                // when the slider updates, dispatches a CustomEvent that Elm can listen for
+                jsr.addEventListener("update", function(elem, value){
+                    var event = new CustomEvent("slide", {
+                        detail: {userSlidTo: value}
+                    });
+
+                    rangeSliderNode.dispatchEvent(event);
+                });
+            }
+        }
+
+        // Defines <range-slider> to use the RangeSlider class for its logic
+        window.customElements.define("range-slider", RangeSlider);
+
+    </script>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="http://elm-in-action.com/pasta.js"></script>
+<script src="/app.js"></script>
+<!--    <script>-->
+<!--        // Passes Pasta.version in as a flag to the Elm program-->
+<!--        var app = Elm.PhotoGroove.init({-->
+<!--            node: document.getElementById("app"),-->
+<!--            flags: Pasta.version-->
+<!--        });-->
+
+<!--        // Run this code when the Elm Runtime sends a setFilters Cmd-->
+<!--        app.ports.setFilters.subscribe(function(options) {-->
+<!--            // Uses requestAnimationFrame to wait for view to be reflected in the real DOM-->
+<!--            requestAnimationFrame(function() {-->
+<!--                Pasta.apply(document.getElementById("main-canvas"), options);-->
+<!--            });-->
+<!--        });-->
+
+<!--        // When Pasta's activity listener fires, sends activity to the activityChanges Sub-->
+<!--        Pasta.addActivityListener(function(activity) {-->
+<!--            app.ports.activityChanges.send(activity);-->
+<!--        });-->
+<!--    </script>-->
+
+<!--    <script>-->
+<!--        var app = Elm.PhotoFolders.init({node: document.getElementById("app")});-->
+<!--    </script>-->
+
+<script>
+    var app = Elm.Main.init({
+        node: document.getElementById("app"),
+        flags: Pasta.version
+    });
+
+    // Run this code when the Elm Runtime sends a setFilters Cmd
+    app.ports.setFilters.subscribe(function(options) {
+        // Uses requestAnimationFrame to wait for view to be reflected in the real DOM
+        requestAnimationFrame(function() {
+            Pasta.apply(document.getElementById("main-canvas"), options);
+        });
+    });
+
+    // When Pasta's activity listener fires, sends activity to the activityChanges Sub
+    Pasta.addActivityListener(function(activity) {
+        app.ports.activityChanges.send(activity);
+    });
+</script>
+
+</body>
+</html>
